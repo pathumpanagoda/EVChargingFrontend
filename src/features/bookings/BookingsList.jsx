@@ -15,21 +15,21 @@ import Input from '../../components/UI/Input'
 import Select from '../../components/UI/Select'
 import Modal from '../../components/UI/Modal'
 import Badge from '../../components/UI/Badge'
-import DateTimePicker from '../../components/UI/DateTimePicker'
 import Pagination from '../../components/UI/Pagination'
 import { PlusIcon, PencilIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 const bookingSchema = z.object({
   stationId: z.string().min(1, 'Please select a station'),
-  reservationDateTime: z.date().min(new Date(), 'Reservation time must be in the future'),
+  reservationDate: z.string().min(1, 'Please select a date'),
+  reservationTime: z.string().min(1, 'Please select a time'),
 }).refine((data) => {
-  const reservationDate = dayjs(data.reservationDateTime)
+  const reservationDateTime = dayjs(`${data.reservationDate} ${data.reservationTime}`)
   const now = dayjs()
   const maxDate = now.add(7, 'days')
-  return reservationDate.isBefore(maxDate)
+  return reservationDateTime.isAfter(now) && reservationDateTime.isBefore(maxDate)
 }, {
-  message: "Reservation must be within 7 days from now",
-  path: ["reservationDateTime"]
+  message: "Reservation must be in the future and within 7 days from now",
+  path: ["reservationDate"]
 })
 
 const BookingsList = () => {
@@ -152,7 +152,8 @@ const BookingsList = () => {
     setEditingBooking(booking)
     reset({
       stationId: booking.stationId,
-      reservationDateTime: new Date(booking.reservationDateTime),
+      reservationDate: dayjs(booking.reservationDateTime).format('YYYY-MM-DD'),
+      reservationTime: dayjs(booking.reservationDateTime).format('HH:mm'),
     })
     setIsModalOpen(true)
   }
@@ -170,9 +171,10 @@ const BookingsList = () => {
   }
 
   const onSubmit = (data) => {
+    const reservationDateTime = dayjs(`${data.reservationDate} ${data.reservationTime}`).toISOString()
     const bookingData = {
       stationId: data.stationId,
-      reservationDateTime: data.reservationDateTime.toISOString(),
+      reservationDateTime: reservationDateTime,
     }
 
     if (editingBooking) {
@@ -373,17 +375,23 @@ const BookingsList = () => {
             placeholder="Select a station"
           />
 
-          <DateTimePicker
-            label="Reservation Date & Time"
-            value={editingBooking?.reservationDateTime}
-            onChange={(date) => {
-              // This will be handled by the form
-            }}
-            {...register('reservationDateTime', { valueAsDate: true })}
-            error={errors.reservationDateTime?.message}
-            minDate={new Date()}
-            maxDate={dayjs().add(7, 'days').toDate()}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Reservation Date"
+              type="date"
+              {...register('reservationDate')}
+              error={errors.reservationDate?.message}
+              min={dayjs().format('YYYY-MM-DD')}
+              max={dayjs().add(7, 'days').format('YYYY-MM-DD')}
+            />
+            
+            <Input
+              label="Reservation Time"
+              type="time"
+              {...register('reservationTime')}
+              error={errors.reservationTime?.message}
+            />
+          </div>
 
           <div className="text-sm text-gray-500">
             <p>• Bookings must be made at least 12 hours in advance</p>

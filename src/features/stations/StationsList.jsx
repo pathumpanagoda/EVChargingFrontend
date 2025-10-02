@@ -127,10 +127,20 @@ const StationsList = () => {
   }
 
   const onSubmit = (data) => {
+    // Debug: Log user object to see what's available
+    console.log('Current user object:', user)
+    console.log('User userId:', user?.userId)
+    console.log('User id:', user?.id)
+    console.log('User username:', user?.username)
+    
+    const operatorId = user?.userId || user?.id || user?.username || ''
+    console.log('Using operatorId:', operatorId)
+    
     const stationData = {
       name: data.name,
       type: data.type,
       totalSlots: data.totalSlots,
+      operatorId: operatorId,
       location: {
         latitude: data.latitude,
         longitude: data.longitude,

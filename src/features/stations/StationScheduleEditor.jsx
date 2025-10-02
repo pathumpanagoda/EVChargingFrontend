@@ -87,7 +87,16 @@ const StationScheduleEditor = ({ station, onClose }) => {
   }
 
   const onSubmit = () => {
-    updateScheduleMutation.mutate(schedules)
+    // Transform schedules to match backend format
+    const scheduleData = {
+      schedule: schedules.map(schedule => ({
+        date: dayjs(schedule.date).format('YYYY-MM-DD'),
+        open: schedule.open,
+        close: schedule.close,
+        slotsAvailable: schedule.slotsAvailable
+      }))
+    }
+    updateScheduleMutation.mutate(scheduleData)
   }
 
   const validateSlotsAvailable = (value, totalSlots) => {

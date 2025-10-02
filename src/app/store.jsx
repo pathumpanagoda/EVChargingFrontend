@@ -47,6 +47,16 @@ export const AuthProvider = ({ children }) => {
     if (token && userData) {
       try {
         const user = JSON.parse(userData)
+        
+        // Check if user object has userId field (new format)
+        if (!user.userId && !user.id) {
+          console.log('Old user format detected, clearing localStorage and forcing re-login')
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          dispatch({ type: 'LOGOUT' })
+          return
+        }
+        
         dispatch({ type: 'LOGIN', payload: { user, token } })
       } catch (error) {
         // If user data is corrupted, clear it

@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { stationsAPI } from '../../api/stations'
 import { useToast } from '../../hooks/useToast'
+import { useAuth } from '../../app/store.jsx'
 import Button from '../../components/UI/Button'
 import Input from '../../components/UI/Input'
 import Select from '../../components/UI/Select'
@@ -19,6 +20,7 @@ const stationSchema = z.object({
 
 const StationForm = ({ station, onClose, isOpen }) => {
   const { showSuccess, showError } = useToast()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
 
   const {
@@ -76,6 +78,7 @@ const StationForm = ({ station, onClose, isOpen }) => {
       name: data.name,
       type: data.type,
       totalSlots: data.totalSlots,
+      operatorId: user?.userId || user?.id || '',
       location: {
         latitude: data.latitude,
         longitude: data.longitude,
