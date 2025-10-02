@@ -91,7 +91,7 @@ const BookingForm = ({ booking, onClose, isOpen }) => {
 
   if (!isOpen) return null
 
-  const stations = stationsData?.data || []
+  const stations = stationsData?.data?.items || []
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

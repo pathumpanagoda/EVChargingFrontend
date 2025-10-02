@@ -69,11 +69,24 @@ const BookingsList = () => {
       ...filters,
       ownerNic: user?.nic || filters.ownerNic 
     }],
-    queryFn: () => bookingsAPI.getOwnerBookings(user?.nic || '', { 
-      page: currentPage, 
-      size: 10, 
-      ...filters 
-    }),
+    queryFn: () => {
+      // Use different API based on user role
+      if (user?.role === 'Backoffice' || user?.role === 'StationOperator') {
+        return bookingsAPI.getBookings({ 
+          page: currentPage, 
+          pageSize: 10, 
+          evOwnerNIC: filters.ownerNic,
+          stationId: filters.stationId,
+          status: filters.status
+        })
+      } else {
+        return bookingsAPI.getOwnerBookings(user?.nic || '', { 
+          page: currentPage, 
+          size: 10, 
+          ...filters 
+        })
+      }
+    },
   })
 
   // Create booking mutation
@@ -186,7 +199,7 @@ const BookingsList = () => {
     return hoursUntilReservation >= 12
   }
 
-  const stations = stationsData?.data || []
+  const stations = stationsData?.data?.items || []
   const bookings = bookingsData?.data?.items || []
   const totalPages = bookingsData?.data?.totalPages || 1
 
@@ -251,6 +264,19 @@ const BookingsList = () => {
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
             </div>
+          ) : bookings.length === 0 ? (
+            <div className="p-6">
+              <Table.EmptyState
+                title="No bookings found"
+                description="Get started by creating a new booking."
+                action={
+                  <Button onClick={handleCreate}>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    New Booking
+                  </Button>
+                }
+              />
+            </div>
           ) : (
             <Table>
               <Table.Header>
@@ -264,19 +290,7 @@ const BookingsList = () => {
                 </tr>
               </Table.Header>
               <Table.Body>
-                {bookings.length === 0 ? (
-                  <Table.EmptyState
-                    title="No bookings found"
-                    description="Get started by creating a new booking."
-                    action={
-                      <Button onClick={handleCreate}>
-                        <PlusIcon className="h-4 w-4 mr-2" />
-                        New Booking
-                      </Button>
-                    }
-                  />
-                ) : (
-                  bookings.map((booking) => (
+                {bookings.map((booking) => (
                     <Table.Row key={booking.id}>
                       <Table.Cell className="font-medium">
                         {booking.stationName || 'N/A'}
@@ -323,8 +337,7 @@ const BookingsList = () => {
                         </div>
                       </Table.Cell>
                     </Table.Row>
-                  ))
-                )}
+                ))}
               </Table.Body>
             </Table>
           )}

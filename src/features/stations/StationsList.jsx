@@ -14,6 +14,7 @@ import Select from '../../components/UI/Select'
 import Modal from '../../components/UI/Modal'
 import Badge from '../../components/UI/Badge'
 import { PlusIcon, PencilIcon, TrashIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
+import StationScheduleEditor from './StationScheduleEditor'
 
 const stationSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
@@ -33,6 +34,7 @@ const StationsList = () => {
   const { showSuccess, showError } = useToast()
   const queryClient = useQueryClient()
   const isBackoffice = user?.role === 'Backoffice'
+  const canManageStations = user?.role === 'Backoffice' || user?.role === 'StationOperator'
 
   const {
     register,
@@ -143,7 +145,7 @@ const StationsList = () => {
     }
   }
 
-  const stations = stationsData?.data || []
+  const stations = stationsData?.data?.items || []
 
   return (
     <div className="space-y-6">
@@ -152,7 +154,7 @@ const StationsList = () => {
           <h1 className="text-2xl font-bold text-gray-900">Charging Stations</h1>
           <p className="mt-1 text-sm text-gray-500">Manage charging stations and their schedules</p>
         </div>
-        {isBackoffice && (
+        {canManageStations && (
           <Button onClick={handleCreate}>
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Station
@@ -165,6 +167,21 @@ const StationsList = () => {
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+            </div>
+          ) : stations.length === 0 ? (
+            <div className="p-6">
+              <Table.EmptyState
+                title="No charging stations found"
+                description="Get started by creating a new charging station."
+                action={
+                  canManageStations && (
+                    <Button onClick={handleCreate}>
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Add Station
+                    </Button>
+                  )
+                }
+              />
             </div>
           ) : (
             <Table>
@@ -180,21 +197,7 @@ const StationsList = () => {
                 </tr>
               </Table.Header>
               <Table.Body>
-                {stations.length === 0 ? (
-                  <Table.EmptyState
-                    title="No charging stations found"
-                    description="Get started by creating a new charging station."
-                    action={
-                      isBackoffice && (
-                        <Button onClick={handleCreate}>
-                          <PlusIcon className="h-4 w-4 mr-2" />
-                          Add Station
-                        </Button>
-                      )
-                    }
-                  />
-                ) : (
-                  stations.map((station) => (
+                {stations.map((station) => (
                     <Table.Row key={station.id}>
                       <Table.Cell className="font-medium">{station.name}</Table.Cell>
                       <Table.Cell>
@@ -242,8 +245,7 @@ const StationsList = () => {
                         </div>
                       </Table.Cell>
                     </Table.Row>
-                  ))
-                )}
+                ))}
               </Table.Body>
             </Table>
           )}

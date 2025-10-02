@@ -1,6 +1,12 @@
 import api from './axios'
 
 export const bookingsAPI = {
+  // Get all bookings (for Backoffice/StationOperator)
+  getBookings: async (params = {}) => {
+    const response = await api.get('/api/booking', { params })
+    return response.data
+  },
+
   // Get booking by ID
   getBooking: async (id) => {
     const response = await api.get(`/api/booking/${id}`)
