@@ -1,12 +1,17 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5034'
+// Use relative URL in development (Vite proxy) or full URL in production
+const API_BASE_URL = import.meta.env.DEV 
+  ? '' // Use relative URLs in development (Vite proxy will handle /api)
+  : import.meta.env.VITE_API_BASE_URL || 'https://localhost:7090'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: false, // Disable credentials for CORS
+  timeout: 10000, // 10 second timeout
 })
 
 // Request interceptor to add auth token
